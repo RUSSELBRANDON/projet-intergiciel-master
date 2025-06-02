@@ -1,0 +1,5 @@
+vendor
+node_modules
+database/database.sqlite
+.git
+tests

@@ -1,0 +1,108 @@
+services:
+  teacher-management:
+    build:
+      context: TeacherManagement
+      dockerfile: Dockerfile
+    container_name: teacher-management
+    volumes:
+      - db_data_teacher:/app/database
+    ports:
+      - "8002:8002"
+    networks:
+      - app-network
+
+  authentication:
+    build:
+      context: Authentification
+      dockerfile: Dockerfile
+    container_name: authentication
+    volumes:
+      - db_data_auth:/app/database
+    ports:
+      - "8001:8001"
+    networks:
+      - app-network
+
+  studentmanagement:
+    build:
+      context: StudentManagement
+      dockerfile: Dockerfile
+    container_name: student-management
+    volumes:
+      - db_data_student:/app/database
+    ports:
+      - "8003:8003"
+    networks:
+      - app-network
+
+  notification:
+    build:
+      context: SendNotification
+      dockerfile: Dockerfile
+    container_name: notification
+    volumes:
+      - db_data_notification:/app/database
+    ports:
+      - "8004:8004"
+    networks:
+      - app-network
+
+  auth-biblio:
+    build:
+      context: AuthentificationServiceBiblio
+      dockerfile: Dockerfile
+    container_name: auth-biblio
+    volumes:
+      - db_data_authbiblio:/app/database
+    ports:
+      - "8005:8005"
+    networks:
+      - app-network
+
+  bookmanagement:
+    build:
+      context: BookManagerServiceBiblio
+      dockerfile: Dockerfile
+    container_name: bookmanagement
+    volumes:
+      - db_data_book:/app/database
+    ports:
+      - "8006:8006"
+    networks:
+      - app-network
+
+  notification-biblio:
+    build:
+      context: NotificationServiceBiblio
+      dockerfile: Dockerfile
+    container_name: notification-biblio
+    volumes:
+      - db_data_notifbiblio:/app/database
+    ports:
+      - "8007:8007"
+    networks:
+      - app-network
+
+  report-service-scheduler:
+    build:
+      context: BookManagerServiceBiblio
+      dockerfile: Dockerfile
+    container_name: report-service-scheduler
+    volumes:
+      - db_data_book:/app/database
+    command: sh -c "while true; do php artisan schedule:run; sleep 60; done"
+    networks:
+      - app-network
+
+volumes:
+  db_data_teacher:
+  db_data_auth:
+  db_data_student:
+  db_data_notification:
+  db_data_authbiblio:
+  db_data_book:
+  db_data_notifbiblio:
+
+networks:
+  app-network:
+    driver: bridge
