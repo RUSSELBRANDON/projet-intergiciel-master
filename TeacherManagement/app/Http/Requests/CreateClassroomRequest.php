@@ -5,6 +5,8 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\Gate;
+
 
 class CreateClassroomRequest extends FormRequest
 {
@@ -13,7 +15,7 @@ class CreateClassroomRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return Gate::allows('isAdmin', session('user'));
     }
 
     /**

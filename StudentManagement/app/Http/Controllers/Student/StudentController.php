@@ -44,9 +44,9 @@ class StudentController extends Controller
     
         if (!$response->successful()) {
 
-            if (!Gate::allows('isAdmin', session('user'))) {
-                return response()->json(['message' => 'Forbidden'], 403);
-            }
+            // if (!Gate::allows('isAdmin', session('user'))) {
+            //     return response()->json(['message' => 'Forbidden'], 403);
+            // }
             
             return response()->json([
                 'message' => 'Échec de la création dans le service AUTH',
@@ -87,8 +87,11 @@ class StudentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(User $student)
+    public function destroy(Request $request, User $student)
     {
+        if (!$request->user() || !Gate::allows('isAdmin', $request->user())) {
+        abort(403, 'Unauthorized');
+    }
         $student->delete();
         return response()->json(['enseignant supprimer'],200);
     }

@@ -9,16 +9,18 @@ use Illuminate\Support\Facades\Route;
 
 
     Route::prefix('teacher')->controller(TeacherController::class)
-    // ->middleware('check_auth')
+    //->middleware('check_auth')
     ->group(function(){
         Route::get('index', 'index');
         Route::post('store', 'store');
         Route::get('show/{teacher}' ,  'show');
         Route::put('update/{teacher}', 'update');
-        Route::delete('delete/{teacher}', 'destroy');
+        Route::delete('delete/{teacher}', 'destroy')->middleware('check_auth:admin');
     });
 
-    Route::prefix('subject')->controller(SubjectController::class)->middleware('check_auth')->group(function(){
+    Route::prefix('subject')->controller(SubjectController::class)
+    ->middleware('check_auth')
+    ->group(function(){
         Route::get('index', 'index');
         Route::post('store', 'store');
         Route::get('show/{subject}' ,  'show');
@@ -26,7 +28,9 @@ use Illuminate\Support\Facades\Route;
         Route::delete('delete/{subject}', 'destroy');
     });
 
-    Route::prefix('classroom')->controller(ClassroomController::class)->middleware('check_auth')->group(function(){
+    Route::prefix('classroom')->controller(ClassroomController::class)->
+    middleware('check_auth')
+    ->group(function(){
         Route::get('index', 'index');
         Route::post('store', 'store');
         Route::get('show/{classroom}' ,  'show');
@@ -34,7 +38,9 @@ use Illuminate\Support\Facades\Route;
         Route::delete('delete/{classroom}', 'destroy');
     });
 
-    Route::prefix('course')->controller(CourseController::class)->middleware('check_auth')->group(function(){
+    Route::prefix('course')->controller(CourseController::class)
+    ->middleware('check_auth')
+    ->group(function(){
         Route::get('index', 'index');
         Route::post('store', 'store');
         Route::put('update/{course}', 'update');
