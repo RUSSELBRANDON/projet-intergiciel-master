@@ -3288,23 +3288,24 @@
         },
         {
             "name": "russel/communicationservice",
-            "version": "1.0",
+            "version": "1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/RUSSELBRANDON/CommunicationBiblio.git",
-                "reference": "b64c617a93e38bdb0c99f3f61a67afea02105bc6"
+                "reference": "a9b32a68a3775ce580fa5aa148b75819fe570bfb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/RUSSELBRANDON/CommunicationBiblio/zipball/b64c617a93e38bdb0c99f3f61a67afea02105bc6",
-                "reference": "b64c617a93e38bdb0c99f3f61a67afea02105bc6",
+                "url": "https://api.github.com/repos/RUSSELBRANDON/CommunicationBiblio/zipball/a9b32a68a3775ce580fa5aa148b75819fe570bfb",
+                "reference": "a9b32a68a3775ce580fa5aa148b75819fe570bfb",
                 "shasum": ""
             },
             "require": {
                 "guzzlehttp/guzzle": "*",
                 "illuminate/http": "*",
                 "illuminate/queue": "*",
-                "illuminate/support": "*"
+                "illuminate/support": "*",
+                "php": "^8.2"
             },
             "type": "library",
             "extra": {
@@ -3333,7 +3334,7 @@
                 "source": "https://github.com/RUSSELBRANDON/CommunicationBiblio/tree/1.0.0",
                 "issues": "https://github.com/RUSSELBRANDON/CommunicationBiblio/issues"
             },
-            "time": "2025-05-28T15:36:57+00:00"
+            "time": "2025-06-04T09:00:31+00:00"
         },
         {
             "name": "symfony/clock",
