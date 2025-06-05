@@ -14,70 +14,76 @@ use Illuminate\Support\Str;
 
 class PasswordController extends Controller
 {
-    public function sendVerificationCode(Request $request){
-        $validator = Validator::make($request->all(), ['email'=>'required|email|max:255']);
-
-        if($validator->fails()){  return response()->json(['message'=>$validator->errors()]); }
+   public function sendVerificationCode(Request $request)
+    {
+        $validator = Validator::make($request->all(), ['email' => 'required|email|max:255']);
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()], 422);
+        }
+    
         $verification_code = Str::random(6);
-        PasswordResetToken::create([
-            'email'=>$request->email,
-            'token'=>$verification_code,
-            'created_at'=> Carbon::now()
-        ]);
+        PasswordResetToken::updateOrInsert(
+            ['email' => $request->email],
+            [
+                'token' => $verification_code,
+                'created_at' => Carbon::now(),
+            ]
+        );
+    
         $user = User::where('email', $request->email)->firstOrFail();
         $user->notify(new ResetPasswordNotification($verification_code));
-
-        return response()->json(['message'=>'code de verification envoyer avec succes'],200);
+    
+        return response()->json(['message' => 'code de verification envoyé avec succès'], 200);
     }
 
 
-    public function verifyCode(Request $request){
-
-        $validator = Validator::make($request->all(),[
-            'email'=>'required|email|max:255',
-            'code'=> 'required|max:6|min:6'
+    public function verifyCode(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|max:255',
+            'code' => 'required|max:6|min:6'
         ]);
-
-        if($validator->fails()){   return response()->json(['message'=>$validator->errors()]);  }
-
-        $password_reset = PasswordResetToken::where('email', $request->email)
-        ->where('token', $request->code)
-        ->firstOrFail();
-
-        if(!$password_reset || Carbon::parse($password_reset->created_at)->addMinutes(60)->isPast()){
-            return response()->json(['message'=>'code de verification invalide ou expire'],422);
+    
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()], 422);
         }
-        return response()->json(['message'=>'code de verification valide'],200);
-    } 
+    
+        $password_reset = PasswordResetToken::where('email', $request->email)
+            ->where('token', $request->code)
+            ->firstOrFail();
+    
+        if (!$password_reset || Carbon::parse($password_reset->created_at)->addMinutes(60)->isPast()) {
+            return response()->json(['message' => 'code de verification invalide ou expire'], 422);
+        }
+    
+        return response()->json(['message' => 'code de verification valide', 'token' => $password_reset->token], 200);    }
 
-    public function resetPassword(Request $request){
-
-        $validator = Validator::make($request->all(),[
-            'email'=>'required|email|max:255',
-            'code'=>'required|min:6|max:6',
-            'new_password'=>'required|min:4'
+    public function resetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|max:255',
+            'token' => 'required',
+            'new_password' => 'required|min:4|string'
         ]);
-
-        if($validator->fails()){
-            return response()->json(['message'=>$validator->errors()]);
+    
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()], 422);
         }
-
+    
         $password_reset = PasswordResetToken::where('email', $request->email)
-        ->where('token', $request->code)
-        ->firstOrFail();
-
-        if(!$password_reset || Carbon::parse($password_reset->created_at)->addMinutes(60)->isPast()){
-            return response()->json(['message'=>'code de verification invalide ou expire'],422);
+            ->where('token', $request->token)
+            ->first();
+    
+        if (!$password_reset || Carbon::parse($password_reset->created_at)->addMinutes(60)->isPast()) {
+            return response()->json(['message' => 'jeton de verification invalide ou expire'], 422);
         }
-
+    
         $user = User::where('email', $request->email)->firstOrFail();
-
-        $user->password = Hash::make($request->password);
+        $user->password = Hash::make($request->new_password);
         $user->save();
-        $password_reset = PasswordResetToken::where('email',$request->email)->delete();
-        
-        return response()->json(['message'=>'mot de passe modifier avec succes'],200);   
-
-
+    
+        PasswordResetToken::where('email', $request->email)->delete();
+    
+        return response()->json(['message' => 'mot de passe modifié avec succès'], 200);
     }
 }
