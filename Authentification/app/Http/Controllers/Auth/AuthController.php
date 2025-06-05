@@ -35,10 +35,15 @@ class AuthController extends Controller
 
 
         return response()->json([
-            'message' => 'Accès autorisé',
+            'message' => 'Connexion réussie',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role ?? 'student', // Valeur par défaut si role est null
+                'type' => $user->type,
+            ],
             'token' => $token,
-            'type_token' => 'Bearer',
-            'username' => $user->name
         ], 200);
     }
 
