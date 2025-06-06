@@ -15,11 +15,11 @@ use Illuminate\Support\Facades\Route;
         Route::post('store', 'store');
         Route::get('show/{teacher}' ,  'show');
         Route::put('update/{teacher}', 'update');
-        Route::delete('delete/{teacher}', 'destroy'); //->middleware('check_auth:admin');
+        Route::delete('delete/{teacher}', 'destroy');
     });
 
     Route::prefix('subject')->controller(SubjectController::class)
-   // ->middleware('check_auth')
+    ->middleware('check_auth')
     ->group(function(){
         Route::get('index', 'index');
         Route::post('store', 'store');
@@ -29,7 +29,7 @@ use Illuminate\Support\Facades\Route;
     });
 
     Route::prefix('classroom')->controller(ClassroomController::class)
-    //->middleware('check_auth')
+    ->middleware('check_auth')
     ->group(function(){
         Route::get('index', 'index');
         Route::post('store', 'store');
@@ -39,7 +39,7 @@ use Illuminate\Support\Facades\Route;
     });
 
     Route::prefix('course')->controller(CourseController::class)
-   // ->middleware('check_auth')
+    ->middleware('check_auth')
     ->group(function(){
         Route::get('index', 'index');
         Route::post('store', 'store');
