@@ -43,7 +43,7 @@ Route::prefix('usecases')->group(function () {
     
      Route::prefix('user')
     ->controller(UserBookController::class)
-     ->middleware('check_auth')
+     //->middleware('check_auth')
     ->group(function(){
         Route::get('getbooks/{user}', 'getAllBooks');
      });

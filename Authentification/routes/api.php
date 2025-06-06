@@ -23,7 +23,7 @@ Route::group(['middleware' => ['auth:sanctum']] , function(){
 //     ]);
 // });
 
-Route::post('/api/verify-token', [VerifyTokenController::class, 'verifyToken'])->middleware('verify-secret');
+ Route::post('/verify-token', [VerifyTokenController::class, 'verifyToken'])->middleware('verify-secret');
 
 Route::group(['middleware' => ['auth:sanctum']] , function(){
     Route::prefix('user')->controller(UserController::class)->group(function(){

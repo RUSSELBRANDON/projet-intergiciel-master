@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Http\Middleware;  
+namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Http\Request; 
-use Illuminate\Http\JsonResponse;  
+use Illuminate\Http\Request;
 use Russel\Communicationservice\Contracts\ServiceCommunicatorInterface;
 
 class CheckAuthentication
@@ -16,51 +15,36 @@ class CheckAuthentication
         $this->communicator = $communicator;
     }
 
-    public function handle(Request $request, Closure $next, ...$roles)
-{
-    $token = $request->bearerToken();
-    if (!$token) {
-        return response()->json(['message' => 'Token missing'], 401);
-    }
-
-    try {
-        \Log::debug('Attempting to verify token', ['token' => substr($token, 0, 10).'...']);
-
-        $response = $this->communicator->call('AUTH-service', 'POST', 'api/verify-token', [
-            'token' => $token,
-            'required_roles' => $roles
-        ]);
-
-        \Log::debug('Auth service raw response', [
-            'status' => $response->status(),
-            'headers' => $response->headers(),
-            'body' => $response->body()
-        ]);
-
-        if (!$response->ok()) {
-            \Log::error('Auth service rejected token', ['status' => $response->status()]);
-            return response()->json(['message' => 'Invalid token', 'auth_error' => $response->body()], 401);
+    public function handle(Request $request, Closure $next)
+    {
+        if ($request->session()->has('user')) {
+            return $next($request);
         }
-
-        $userData = $response->json();
-        \Log::debug('Decoded user data', $userData);
-
-        if (!isset($userData['user'])) {
-            throw new \RuntimeException('Invalid auth service response format');
+        
+        $token = $request->bearerToken();
+        if (!$token) {
+            return response()->json(['message' => 'No token provided'], 401);
         }
-
-        $request->merge(['user' => $userData['user']]);
-        return $next($request);
-
-    } catch (\Exception $e) {
-        \Log::error('Auth service failure', [
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ]);
-        return response()->json([
-            'message' => 'Authentication failed',
-            'debug' => config('app.debug') ? $e->getMessage() : null
-        ], 500);
+        
+        try {
+            $response = $this->communicator->call(
+                service: 'AUTH-service',
+                method: 'post',
+                endpoint: '/api/verify-token',
+                data: ['token' => $token],
+                headers: ['Accept' => 'application/json']
+            );        
+                if ($response->ok()) {
+                $user = $response->json()['user'];
+                $request->merge(['current_user' => $user]);
+                $request->session()->put('user', $user);
+                $request->session()->save();
+                return $next($request);
+            } else {
+                return response()->json(['message' => 'Error verifying token'], 500);
+            }
+        } catch (\Exception $e) {
+            return  response()->json(['message' => $e->getMessage()], 500);
+        }
     }
-}
 }

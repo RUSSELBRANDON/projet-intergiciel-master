@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Http\Middleware;  
+namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Http\Request; 
-use Illuminate\Http\JsonResponse;  
+use Illuminate\Http\Request;
 use Russel\Communicationservice\Contracts\ServiceCommunicatorInterface;
 
 class CheckAuthentication
@@ -24,20 +23,28 @@ class CheckAuthentication
         
         $token = $request->bearerToken();
         if (!$token) {
-            return new JsonResponse(['message' => 'No token provided'], 401);
+            return response()->json(['message' => 'No token provided'], 401);
         }
         
         try {
-            $response = $this->communicator->call('auth-service', 'POST', 'api/verify-token', ['token' => $token]);
-            if ($response->ok()) {
+            $response = $this->communicator->call(
+                service: 'AUTH-service',
+                method: 'post',
+                endpoint: '/api/verify-token',
+                data: ['token' => $token],
+                headers: ['Accept' => 'application/json']
+            );        
+                if ($response->ok()) {
                 $user = $response->json()['user'];
+                $request->merge(['current_user' => $user]);
                 $request->session()->put('user', $user);
+                $request->session()->save();
                 return $next($request);
             } else {
-                return new JsonResponse(['message' => 'Error verifying token'], 500);
+                return response()->json(['message' => 'Error verifying token'], 500);
             }
         } catch (\Exception $e) {
-            return new JsonResponse(['message' => 'Error verifying token'], 500);
+            return  response()->json(['message' => $e->getMessage()], 500);
         }
     }
 }

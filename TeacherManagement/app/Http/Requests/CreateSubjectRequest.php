@@ -15,7 +15,7 @@ class CreateSubjectRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Gate::allows('isAdmin', session('user'));
+        return true;
     }
 
     /**

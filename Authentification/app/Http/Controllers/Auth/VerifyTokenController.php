@@ -18,11 +18,17 @@ class VerifyTokenController extends controller
         }
         
         $tokenModel = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
-        if (! $tokenModel || $tokenModel->expired()) {
+        if (! $tokenModel) {
             throw ValidationException::withMessages(['token' => 'Invalid token']);
         }
-        
         $user = $tokenModel->tokenable;
-        return new JsonResponse(['user' => $user->only(['id', 'name', 'email', 'role'])]);
+        return response()->json([
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ]
+        ], 200);
     }
 }

@@ -75,7 +75,7 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $user->role ?? 'student', // Valeur par défaut si role est null
+                'role' => $user->role ?? 'student',
                 'type' => $user->type,
             ],
             'token' => $token,

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\BookRequests\CreateBookRequest;
 use App\Http\Requests\BookRequests\UpdateBookRequest;
 use App\Models\Book;
+use Illuminate\Support\Facades\Auth;
 
 class BookController extends Controller
 {
@@ -21,13 +22,23 @@ class BookController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CreateBookRequest $request)
-    {
-        $validatedData = $request->validated();
-        $user = $request->current_user ?? $request->session()->get('user');    
-        $validatedData['owner_id'] = $user['id'];
-        $book = Book::create($validatedData);
-        return response()->json($book);
+   public function store(CreateBookRequest $request)
+   {
+        try {
+            $validatedData = $request->validated();
+            $user = $request->current_user;
+    
+            if (!$user || !isset($user['id'])) {
+                return response()->json(['error' => 'Utilisateur non authentifié'], 401);
+            }
+    
+            $validatedData['owner_id'] = $user['id'];
+            $book = Book::create($validatedData);
+            return response()->json($book, 201);
+        } catch (\Exception $e) {
+            \Log::error('Error creating book: ' . $e->getMessage());
+            return response()->json(['error' => 'Erreur interne', 'message' => $e->getMessage()], 500);
+        }
     }
 
     /**

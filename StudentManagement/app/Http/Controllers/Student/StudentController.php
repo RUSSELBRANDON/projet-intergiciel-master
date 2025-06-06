@@ -44,20 +44,20 @@ class StudentController extends Controller
     
         if (!$response->successful()) {
 
-            // if (!Gate::allows('isAdmin', session('user'))) {
-            //     return response()->json(['message' => 'Forbidden'], 403);
-            // }
+             if (!Gate::allows('isAdmin', session('user'))) {
+                 return response()->json(['message' => 'Forbidden'], 403);
+             }
             
             return response()->json([
                 'message' => 'Échec de la création dans le service AUTH',
                 'errors' => $response->json()
             ], $response->status());
         }
-            $teacher = User::create($validatedData);
+            $student = User::create($validatedData);
             
             return response()->json([
                 'message' => 'ELeve créé avec succès',
-                'teacher' => $teacher,
+                'teacher' => $student,
             ], 201);
     }
 
@@ -81,7 +81,7 @@ class StudentController extends Controller
         $student->age = $validatedData['age'];
         $student->email = $validatedData['email'];
         $student->save();
-        return response()->json(['message'=>'enseignant mis a jour avec succes' ,'Student'=>$student],200);
+        return response()->json(['message'=>'eleve mis a jour avec succes' ,'Student'=>$student],200);
     }
 
     /**
@@ -89,10 +89,10 @@ class StudentController extends Controller
      */
     public function destroy(Request $request, User $student)
     {
-        if (!$request->user() || !Gate::allows('isAdmin', $request->user())) {
-        abort(403, 'Unauthorized');
-    }
+         if (!$request->user() || !Gate::allows('isAdmin', $request->user())) {
+         abort(403, 'Unauthorized');
+     }
         $student->delete();
-        return response()->json(['enseignant supprimer'],200);
+        return response()->json(['eleve supprimer'],200);
     }
 }

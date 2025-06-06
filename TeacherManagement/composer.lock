@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7ecf078b2d90c65b4c3f8d582e9da619",
+    "content-hash": "14cf226b7d919a1caffcec00d47f74da",
     "packages": [
         {
             "name": "brick/math",
@@ -3288,24 +3288,23 @@
         },
         {
             "name": "russel/communicationservice",
-            "version": "1.0.0",
+            "version": "1.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/RUSSELBRANDON/CommunicationDependence.git",
-                "reference": "f00ffb9ea8c8aebb1b107eba99f834e1493ee0ac"
+                "url": "https://github.com/RUSSELBRANDON/CommunicationDependenceEdu.git",
+                "reference": "957203d12ff2faac4aa9253a4a347dbda87c2559"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/RUSSELBRANDON/CommunicationDependence/zipball/f00ffb9ea8c8aebb1b107eba99f834e1493ee0ac",
-                "reference": "f00ffb9ea8c8aebb1b107eba99f834e1493ee0ac",
+                "url": "https://api.github.com/repos/RUSSELBRANDON/CommunicationDependenceEdu/zipball/957203d12ff2faac4aa9253a4a347dbda87c2559",
+                "reference": "957203d12ff2faac4aa9253a4a347dbda87c2559",
                 "shasum": ""
             },
             "require": {
                 "guzzlehttp/guzzle": "*",
                 "illuminate/http": "*",
                 "illuminate/queue": "*",
-                "illuminate/support": "*",
-                "php": "^8.2"
+                "illuminate/support": "*"
             },
             "type": "library",
             "extra": {
@@ -3331,10 +3330,10 @@
             ],
             "description": "dependance pour la communication entre services",
             "support": {
-                "source": "https://github.com/RUSSELBRANDON/CommunicationDependence/tree/1.0.0",
-                "issues": "https://github.com/RUSSELBRANDON/CommunicationDependence/issues"
+                "source": "https://github.com/RUSSELBRANDON/CommunicationDependenceEdu/tree/1.0.0",
+                "issues": "https://github.com/RUSSELBRANDON/CommunicationDependenceEdu/issues"
             },
-            "time": "2025-05-28T04:10:34+00:00"
+            "time": "2025-06-06T09:48:17+00:00"
         },
         {
             "name": "symfony/clock",

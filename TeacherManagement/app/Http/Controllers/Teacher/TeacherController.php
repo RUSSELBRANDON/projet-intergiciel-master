@@ -32,22 +32,25 @@ class TeacherController extends Controller
         $validatedData = $request->validated();
         DB::beginTransaction();
 
-        try {
+         try {
 
-            $user = User::create($request->validated());
-            $response = $communicator->call(
-            service: 'AUTH-service',
-            method: 'post',
-            endpoint: '/api/admin/users',
-            data: $validatedData,
-            headers: []);
+             $teacher = User::create($request->validated());
+             $response = $communicator->call(
+             service: 'AUTH-service',
+             method: 'post',
+             endpoint: '/api/admin/users',
+             data: $validatedData,
+             headers: []);
     
-            if (!$response->successful()) {
-                throw new \Exception("Échec AUTH-service: " . $response->status());
-            }
+             if (!$response->successful()) {
+                 throw new \Exception("Échec AUTH-service: " . $response->status());
+             }
     
             DB::commit();
-            return response()->json(['user' => $user], 201);
+             return response()->json([
+            'message' => 'Enseignant créé avec succès',
+            'teacher' => $teacher
+        ], 201);
     
         } catch (\Exception $e) {
             DB::rollBack();
@@ -56,6 +59,11 @@ class TeacherController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function show(User $teacher)
+    {
+        return response()->json($teacher);
     }
 
 

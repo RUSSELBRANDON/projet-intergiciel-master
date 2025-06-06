@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 class BookController extends Controller
 {
     public function getAllBooks(User $user){
-        $userbooks = $user->books()->paginate(10);
+        $userbooks = $user->books;
         return response()->json($userbooks);
     }
 }
