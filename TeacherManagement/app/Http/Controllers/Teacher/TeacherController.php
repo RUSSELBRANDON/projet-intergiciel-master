@@ -7,7 +7,7 @@ use App\Http\Requests\CreateTeacherRequest;
 use App\Http\Requests\UpdateTeacherRequest;
 use Russel\Communicationservice\Contracts\ServiceCommunicatorInterface;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 
 
 use App\Models\User;
@@ -27,31 +27,39 @@ class TeacherController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CreateTeacherRequest $request, ServiceCommunicatorInterface $communicator){
-
+    public function store(CreateTeacherRequest $request, ServiceCommunicatorInterface $communicator)
+    {
         $validatedData = $request->validated();
         DB::beginTransaction();
 
-         try {
+        try {
+            $teacher = User::create($validatedData);
+            $token = $request->bearerToken();
+            if (!$token) {
+                throw new \Exception('Jeton d\'authentification manquant dans la requête');
+            }
+            $response = $communicator->call(
+                service: 'AUTH-service',
+                method: 'post',
+                endpoint: '/api/admin/users',
+                data: $validatedData,
+                headers: [
+                    'Authorization' => 'Bearer ' . $token
+                ]
+            );
 
-             $teacher = User::create($request->validated());
-             $response = $communicator->call(
-             service: 'AUTH-service',
-             method: 'post',
-             endpoint: '/api/admin/users',
-             data: $validatedData,
-             headers: []);
-    
-             if (!$response->successful()) {
-                 throw new \Exception("Échec AUTH-service: " . $response->status());
-             }
-    
+            if (!$response->successful()) {
+                throw new \Exception("Échec AUTH-service: " . $response->status());
+            }
+
             DB::commit();
-             return response()->json([
-            'message' => 'Enseignant créé avec succès',
-            'teacher' => $teacher
-        ], 201);
-    
+            return response()->json([
+                'message' => 'Enseignant créé avec succès',
+                'teacher' => $teacher
+            ], 201);
+
+        } catch (ValidationException $e) {
+            DB::rollBack();
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -85,23 +93,31 @@ class TeacherController extends Controller
     public function destroy(User $teacher, ServiceCommunicatorInterface $communicator)
     {
         DB::beginTransaction();
-
-        try {
-
+    
+        try {    
+            $token = request()->bearerToken();
+            if (!$token) {
+                throw new \Exception('Jeton d\'authentification manquant dans la requête');
+            }
+    
             $teacher->delete();
+    
             $response = $communicator->call(
-            service: 'AUTH-service',
-            method: 'post',
-            endpoint: '/api/admin/users/{user}',
-            data:[],
-            headers: []);
+                service: 'AUTH-service',
+                method: 'delete', // Corrigé de 'post' à 'delete'
+                endpoint: "/api/admin/users/{$teacher->id}",
+                data: [],
+                headers: [
+                    'Authorization' => 'Bearer ' . $token
+                ]
+            );
     
             if (!$response->successful()) {
                 throw new \Exception("Échec AUTH-service: " . $response->status());
             }
     
             DB::commit();
-                    return response()->json(['enseignant supprimer'],200);
+            return response()->json(['message' => 'Enseignant supprimé'], 200);
     
         } catch (\Exception $e) {
             DB::rollBack();
