@@ -12,6 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->appendToGroup('api', \Illuminate\Session\Middleware\StartSession::class,);
         $middleware->alias([
             'check_auth_and_role' => \App\Http\Middleware\CheckAuthentication::class,
         ]);

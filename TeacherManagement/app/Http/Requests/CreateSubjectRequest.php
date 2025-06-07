@@ -26,7 +26,7 @@ class CreateSubjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "label"=>"required|string|unique|max:255",
+            "label"=>"required|string|unique:subjects|max:255",
         ];
     }
 

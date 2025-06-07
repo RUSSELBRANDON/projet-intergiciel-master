@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use App\Http\Requests\CreateStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use Russel\Communicationservice\Contracts\ServiceCommunicatorInterface;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Gate;
 
 
@@ -29,46 +31,81 @@ class StudentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CreateStudentRequest $request)
+    public function store(CreateStudentRequest $request, ServiceCommunicatorInterface $communicator)
     {
         $validatedData = $request->validated();
-    
-        $response = $this->communicator->call(
-            service: 'AUTH-service',
-            method: 'post',
-            endpoint: '/api/admin/users',
-            data: $validatedData,
-            headers: ['Authorization' => 'Bearer ' . $request->bearerToken()]
-        );
+        Log::info('Données validées pour créer un étudiant', ['data' => $validatedData]);
 
-    
-        if (!$response->successful()) {
+        DB::beginTransaction();
 
-             if (!Gate::allows('isAdmin', session('user'))) {
-                 return response()->json(['message' => 'Forbidden'], 403);
-             }
-            
-            return response()->json([
-                'message' => 'Échec de la création dans le service AUTH',
-                'errors' => $response->json()
-            ], $response->status());
-        }
+        try {
+            Log::info('Tentative de création de l\'utilisateur dans studentManagement', ['data' => $validatedData]);
             $student = User::create($validatedData);
-            
+            Log::info('Utilisateur créé localement', ['student_id' => $student->id, 'student' => $student->toArray()]);
+
+            $token = $request->bearerToken();
+            if (!$token) {
+                Log::error('Jeton d\'authentification manquant dans la requête');
+                throw new \Exception('Jeton d\'authentification manquant dans la requête');
+            }
+
+            Log::info('Appel à AUTH-service pour créer un utilisateur', ['endpoint' => '/api/admin/users', 'data' => $validatedData]);
+            $response = $communicator->call(
+                service: 'AUTH-service',
+                method: 'post',
+                endpoint: '/api/admin/users',
+                data: $validatedData,
+                headers: [
+                    'Authorization' => 'Bearer ' . $token
+                ]
+            );
+
+            if (!$response->successful()) {
+                Log::error('Échec de l\'appel à AUTH-service', [
+                    'status' => $response->status(),
+                    'response' => $response->body(),
+                    'data_sent' => $validatedData
+                ]);
+                throw new \Exception("Échec AUTH-service: " . $response->status());
+            }
+
+            Log::info('Réponse AUTH-service', ['status' => $response->status(), 'body' => $response->body()]);
+
+            DB::commit();
+            Log::info('Transaction validée, étudiant créé avec succès', ['student_id' => $student->id]);
+
+            $responseData = [
+                'message' => 'Élève créé avec succès',
+                'student' => $student->toArray()
+            ];
+            Log::info('Réponse envoyée au frontend', ['response' => $responseData]);
+
+            return response()->json($responseData, 201);
+
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            Log::error('Erreur de validation', ['errors' => $e->errors()]);
             return response()->json([
-                'message' => 'ELeve créé avec succès',
-                'teacher' => $student,
-            ], 201);
+                'message' => 'Erreur de validation',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Erreur lors de la création de l\'étudiant', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'message' => 'Erreur lors de la création',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(User $student)
     {
         return response()->json($student);
     }
-
     /**
      * Update the specified resource in storage.
      */
@@ -87,12 +124,41 @@ class StudentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, User $student)
+   public function destroy(User $student, ServiceCommunicatorInterface $communicator)
     {
-         if (!$request->user() || !Gate::allows('isAdmin', $request->user())) {
-         abort(403, 'Unauthorized');
-     }
-        $student->delete();
-        return response()->json(['eleve supprimer'],200);
+        DB::beginTransaction();
+    
+        try {    
+            $token = request()->bearerToken();
+            if (!$token) {
+                throw new \Exception('Jeton d\'authentification manquant dans la requête');
+            }
+    
+            $student->delete();
+    
+            $response = $communicator->call(
+                service: 'AUTH-service',
+                method: 'delete',
+                endpoint: "/api/admin/users/{$student->id}",
+                data: [],
+                headers: [
+                    'Authorization' => 'Bearer ' . $token
+                ]
+            );
+    
+            if (!$response->successful()) {
+                throw new \Exception("Échec AUTH-service: " . $response->status());
+            }
+    
+            DB::commit();
+            return response()->json(['message' => 'Eleve supprimé'], 200);
+    
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Erreur lors de la suppression',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

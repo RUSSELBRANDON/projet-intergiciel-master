@@ -28,7 +28,7 @@ class CourseRequest extends FormRequest
         return [
             'hour_start' => 'required|date_format:H:i',
             'hour_end' => 'required|date_format:H:i|after:hour_start',
-            'day' => 'required|date_format:Y-m-d',
+            'day' => 'required|string',
             "user_id"=>"required|integer",
             "subject_id"=>"required|integer",
             "classroom_id"=>"required|integer",
@@ -36,7 +36,7 @@ class CourseRequest extends FormRequest
         ];
     }
 
-    public function message(){
+    public function messages(){
         return [
             'day.date_format'=>'format de date incorect (Y-M-D)',
             'hour_start.date_format'=>'format d\'heure invalide', 

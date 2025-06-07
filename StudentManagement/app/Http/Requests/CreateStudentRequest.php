@@ -18,7 +18,7 @@ class CreateStudentRequest extends FormRequest
     //     Gate::define('isAdmin', function ($user) {
     //     return $user['role'] === 'admin'; 
     // });
-       return true
+       return true;
     }
 
     /**
